@@ -363,8 +363,12 @@ SOURCES['AnimationLibrary'] = [=[-- AnimationLibrary (expanded reconstruction)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local AnimationLibrary = { Info = {} }
 
-local soundCallbacksFolder = script:FindFirstChild("SoundCallbacks")
-local effectCallbacksFolder = script:FindFirstChild("EffectCallbacks")
+local soundCallbacksFolder = nil
+local effectCallbacksFolder = nil
+if script and typeof(script) == "Instance" then
+	soundCallbacksFolder = script:FindFirstChild("SoundCallbacks")
+	effectCallbacksFolder = script:FindFirstChild("EffectCallbacks")
+end
 
 local function register(name, animationId, speed, length, actionTimestamp, extra)
 	speed = speed or 1
