@@ -136,16 +136,24 @@ return Signal
 ]=]
 
 SOURCES['Spring'] = [=[-- Spring (cleaned from original)
--- Simple critically-damped spring used for recoil, camera, UI, etc.
+-- Supports both number and Vector3 (for recoil + spread)
 
 local Spring = {}
 Spring.__index = Spring
 
+local function zeroLike(v)
+	if typeof(v) == "Vector3" then
+		return Vector3.zero
+	end
+	return 0
+end
+
 function Spring.new(initial, speed, damper)
+	initial = initial or 0
 	local self = setmetatable({
-		Value = initial or 0,
-		Target = initial or 0,
-		Velocity = 0,
+		Value = initial,
+		Target = initial,
+		Velocity = zeroLike(initial),
 		Speed = speed or 10,
 		Damper = damper or 1,
 	}, Spring)
@@ -162,7 +170,7 @@ end
 
 function Spring:SetValue(value)
 	self.Value = value
-	self.Velocity = 0
+	self.Velocity = zeroLike(value)
 end
 
 function Spring:Update(dt)
@@ -171,7 +179,6 @@ function Spring:Update(dt)
 	local x = self.Value - self.Target
 	local v = self.Velocity
 
-	-- Critically / under / over damped analytic step
 	if zeta < 1 then
 		local wd = omega * math.sqrt(1 - zeta * zeta)
 		local e = math.exp(-zeta * omega * dt)
@@ -181,7 +188,6 @@ function Spring:Update(dt)
 		self.Velocity = e * ((-zeta * omega * c1 + wd * c2) * math.cos(wd * dt)
 			+ (-wd * c1 - zeta * omega * c2) * math.sin(wd * dt))
 	else
-		-- Overdamped / critically damped simplified
 		local e = math.exp(-omega * dt)
 		self.Value = self.Target + (x + (v + omega * x) * dt) * e
 		self.Velocity = (v - (x * omega * omega + v * omega) * dt) * e
